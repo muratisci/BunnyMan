@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,13 +12,63 @@ public class PlayerController : MonoBehaviour
     public Transform rightFootTransform;
     public Transform leftFootTransform;
 
+    public float speedMultiplier;
+    
     private Animator _myAnimator;
+    private Transform _parent;
+    private float _direction;
 
     private void Start()
     {
         _myAnimator = GetComponent<Animator>();
+        _parent = transform.parent;
     }
 
+    private void Update()
+    {
+        TurnInputs();
+        Movement();
+        IKInputs();
+    }
+
+    private void Movement()
+    {
+        _parent.root.Translate(Vector3.forward * _direction * speedMultiplier * Time.deltaTime);
+    }
+    private void TurnInputs()
+    {
+        if (Input.GetKey(KeyCode.D))
+        {
+            _parent.Rotate(Vector3.right * 360f * Time.deltaTime);
+            _direction = 1;
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            _parent.Rotate(Vector3.right * -360f * Time.deltaTime);
+            _direction = -1;
+        }
+        else
+        {
+            _direction = 0;
+        }
+    }
+    private void IKInputs()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            //  DOTween.Kill(rightFootTransform);
+            // DOTween.Kill(leftFootTransform);
+            rightFootTransform.DOLocalMoveY(-1, 0.12f);
+            leftFootTransform.DOLocalMoveY(-1f, 0.12f);
+        }
+        else if (Input.GetKeyUp(KeyCode.W))
+        {
+            //DOTween.Kill(rightFootTransform);
+            //DOTween.Kill(leftFootTransform);
+            rightFootTransform.DOLocalMoveY(-0.5f, 0.12f);
+            leftFootTransform.DOLocalMoveY(-0.5f, 0.12f);
+        }
+    }
     private void OnAnimatorIK(int layerIndex)
     {
         _myAnimator.SetIKPosition(AvatarIKGoal.RightHand, rightArmTransform.position);
